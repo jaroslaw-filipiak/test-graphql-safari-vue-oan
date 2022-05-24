@@ -1,0 +1,11 @@
+query {
+  pageHomepage {
+    data {
+      attributes {
+        Hero {
+          newsletter_law_info
+        }
+      }
+    }
+  }
+}

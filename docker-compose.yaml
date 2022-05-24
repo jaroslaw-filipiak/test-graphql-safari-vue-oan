@@ -1,0 +1,39 @@
+---
+version: '3.4'
+services:
+  fe:
+    image: node:12-alpine
+    command: sh -c "yarn install && yarn run build && yarn run start"
+    volumes:
+      - .:/srv/app
+    working_dir: /srv/app
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ct-fe.entrypoints=http"
+      - "traefik.http.routers.ct-fe.rule=Host(`ct.dev.softgorillas.com`) || Host(`www.ct.dev.softgorillas.com`)"
+      - "traefik.http.middlewares.ct-fe-https-redirect.redirectscheme.scheme=https"
+      - "traefik.http.routers.ct-fe.middlewares=ct-fe-https-redirect"
+      - "traefik.http.routers.ct-fe-secure.entrypoints=https"
+      - "traefik.http.middlewares.ct-fe-secure.headers.customFrameOptionsValue=SAMEORIGIN"
+      - "traefik.http.middlewares.ct-fe-secure.headers.framedeny=true"
+      - "traefik.http.middlewares.ct-fe-secure.headers.sslredirect=true"
+      - "traefik.http.middlewares.ct-fe-secure.headers.stsIncludeSubdomains=true"
+      - "traefik.http.middlewares.ct-fe-secure.headers.stsPreload=true"
+      - "traefik.http.middlewares.ct-fe-secure.headers.stsSeconds=15552000"
+      - "traefik.http.middlewares.ct-fe-secure.compress=true"
+      - "traefik.http.routers.ct-fe-secure.rule=Host(`ct.dev.softgorillas.com`) || Host(`www.ct.dev.softgorillas.com`)"
+      - "traefik.http.routers.ct-fe-secure.tls=true"
+      - "traefik.http.routers.ct-fe-secure.tls.certresolver=le"
+      - "traefik.http.routers.ct-fe-secure.service=ct-fe"
+      - "traefik.http.services.ct-fe.loadbalancer.server.port=3000"
+      - "traefik.docker.network=_base_default"
+    networks:
+      - default
+      - base
+
+networks:
+  default:
+    driver: bridge
+  base:
+    external:
+      name: _base_default
